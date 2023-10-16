@@ -1,7 +1,7 @@
 import serial
 
 
-com_port = 'COM6'
+com_port = 'COM4'
 baud_rate = 9600
 
 try:
