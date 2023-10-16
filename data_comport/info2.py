@@ -7,7 +7,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 
 # Replace 'COM3' with the name of your COM port
-com_port = 'COM6'
+com_port = 'COM4'
 baud_rate = 9600  # Match this with your Arduino's serial baud rate
 
 # Create lists to store pitch, roll, and yaw data
