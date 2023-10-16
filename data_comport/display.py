@@ -5,7 +5,7 @@ import serial
 def update_values():
     try:
         # Read data from the COM port (replace 'COM3' with your COM port)
-        with serial.Serial('COM6', 9600, timeout=1) as ser:
+        with serial.Serial('COM4', 9600, timeout=1) as ser:
             data = ser.readline().decode('utf-8').strip()
 
             # Split the data into roll, yaw, and pitch values (assuming comma-separated values)
