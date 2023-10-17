@@ -1,57 +1,70 @@
 import serial
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
-import numpy as np
-import re
+from collections import deque
 
 com_port = 'COM4'
 baud_rate = 9600
+max_data_points = 100  # Number of data points to display
+y_lim_pitch = (-180, 180)  # Y-axis limits for pitch
+y_lim_roll = (-180, 180)  # Y-axis limits for roll
+y_lim_yaw = (-180, 180)  # Y-axis limits for yaw
 
-pitch_data = []
-yaw_data = []
+pitch_data = deque(maxlen=max_data_points)
+roll_data = deque(maxlen=max_data_points)
+yaw_data = deque(maxlen=max_data_points)
 
-fig, ax = plt.subplots(2, 1)
+plt.ion()  # Turn on interactive mode for real-time plotting
 
-def extract_pitch_yaw(data):
-    # Use regular expressions to find the pitch and yaw values in the string
-    pitch_match = re.search(r'Pitch: (-?\d+\.\d+)', data)
-    yaw_match = re.search(r'Yaw: (-?\d+\.\d+)', data)
+fig, ax = plt.subplots()
+line_pitch, = ax.plot([], label="Pitch")
+line_roll, = ax.plot([], label="Roll")
+line_yaw, = ax.plot([], label="Yaw")
 
-    if pitch_match and yaw_match:
-        pitch = float(pitch_match.group(1))
-        yaw = float(yaw_match.group(1))
-        return pitch, yaw
-    else:
-        return None, None
+ax.set_xlabel("Time")
+ax.set_ylabel("Values")
+ax.set_title("Pitch, Roll, and Yaw Data")
+ax.legend()
 
-def update_plot(frame):
+# Set custom Y-axis limits
+ax.set_ylim(y_lim_pitch[0], y_lim_pitch[1])
+
+# Create a function to update the plot
+def update_plot():
     data = ser.readline().decode('utf-8').strip()
-
     if data:
-        pitch, yaw = extract_pitch_yaw(data)
-
-        if pitch is not None and yaw is not None:
+        try:
+            values = data.split()  # Split the data into individual values
+            pitch = float(values[1])
+            roll = float(values[3])
+            yaw = float(values[5])
             pitch_data.append(pitch)
+            roll_data.append(roll)
             yaw_data.append(yaw)
+            line_pitch.set_data(range(len(pitch_data)), pitch_data)
+            line_roll.set_data(range(len(roll_data)), roll_data)
+            line_yaw.set_data(range(len(yaw_data)), yaw_data)
 
-            ax[0].clear()
-            ax[0].plot(pitch_data)
-            ax[0].set_title('Pitch Data')
+            # Automatically update Y-axis limits based on the data
+            ax.relim()
+            ax.autoscale_view()
 
-            ax[1].clear()
-            ax[1].plot(yaw_data)
-            ax[1].set_title('Yaw Data')
+            # Set custom Y-axis limits
+            ax.set_ylim(y_lim_pitch[0], y_lim_pitch[1])
+
+            fig.canvas.flush_events()
+        except (ValueError, IndexError):
+            print(f"Invalid data format: {data}")
 
 try:
     ser = serial.Serial(com_port, baud_rate, timeout=1)
     print(f"Reading data from {com_port} at {baud_rate} baud rate...")
 
-    ani = FuncAnimation(fig, update_plot, interval=100)  # Update every 100 milliseconds
-
-    plt.show()
+    while True:
+        update_plot()
 
 except serial.SerialException as e:
     print(f"Error: {e}")
+
 finally:
     if 'ser' in locals() and ser.is_open:
         ser.close()
