@@ -1,6 +1,5 @@
 import serial
 
-
 com_port = 'COM4'
 baud_rate = 9600
 
