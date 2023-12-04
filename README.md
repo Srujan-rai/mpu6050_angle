@@ -39,3 +39,4 @@ Before you begin, make sure you have the following hardware and software prerequ
 4. View the real-time roll, pitch, and yaw data displayed on the web page.
 
 ## Project Structure
+you take the sensor inputs from the sensor 
